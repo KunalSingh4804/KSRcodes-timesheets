@@ -4,9 +4,17 @@ import { rolePermissions } from "../server/src/permissions.js";
 export async function seed() {
   if (process.env.NODE_ENV === "production")
     throw new Error("Fictional seed data is forbidden in production");
-  if (await db.organization.count()) return;
+  const existingOrganization = await db.organization.findFirst();
+  if (existingOrganization) {
+    if (existingOrganization.name === "MultiverseTech Solutions")
+      await db.organization.update({
+        where: { id: existingOrganization.id },
+        data: { name: "KSRcodes pvt.ltd" },
+      });
+    return;
+  }
   const org = await db.organization.create({
-    data: { name: "MultiverseTech Solutions", timezone: "Asia/Kolkata" },
+    data: { name: "KSRcodes pvt.ltd", timezone: "Asia/Kolkata" },
   });
   const permissionCodes = [
     "timesheet.read",

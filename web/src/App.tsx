@@ -162,8 +162,8 @@ function Brand() {
         <InfinityIcon size={28} />
       </div>
       <div>
-        <strong>MultiverseTech</strong>
-        <span>S O L U T I O N S</span>
+        <strong>KSRcodes</strong>
+        <span>P V T . L T D</span>
       </div>
     </div>
   );
@@ -191,7 +191,7 @@ function SignIn() {
       <div className="sign-in-story">
         <Brand />
         <div>
-          <span className="eyebrow">THE MULTIVERSE WORKSPACE</span>
+          <span className="eyebrow">THE KSRcodes WORKSPACE</span>
           <h1>
             Great work.
             <br />
@@ -205,7 +205,7 @@ function SignIn() {
             keep projects moving, and close the month.
           </p>
         </div>
-        <small>MultiverseTech Solutions · Employee workspace</small>
+        <small>KSRcodes pvt.ltd · Employee workspace</small>
       </div>
       <div className="sign-in-form">
         <span className="small-logo">
@@ -345,7 +345,7 @@ function Workspace({ me }: { me: Any }) {
           <span className="workspace-avatar">M</span>
           <div>
             <strong>Company workspace</strong>
-            <small>MultiverseTech Solutions</small>
+            <small>KSRcodes pvt.ltd</small>
           </div>
         </div>
         <span className="nav-label">PERSONAL</span>
@@ -506,7 +506,7 @@ function Workspace({ me }: { me: Any }) {
             </Routes>
           }
           <footer>
-            <span>© {new Date().getFullYear()} MultiverseTech Solutions</span>
+            <span>© {new Date().getFullYear()} KSRcodes pvt.ltd</span>
             <span>Thoughtful work. Clear records.</span>
           </footer>
         </main>
@@ -2022,7 +2022,7 @@ function Reports({ period }: { period: Any }) {
       const url = URL.createObjectURL(await response.blob());
       const a = document.createElement("a");
       a.href = url;
-      a.download = `MultiverseTech-${period.startsOn.slice(0, 7)}.csv`;
+      a.download = `KSRcodes-${period.startsOn.slice(0, 7)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {

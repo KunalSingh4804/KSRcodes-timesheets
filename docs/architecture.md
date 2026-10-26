@@ -1,4 +1,4 @@
-# MultiverseTech Solutions — application architecture
+# KSRcodes pvt.ltd — application architecture
 
 This repository is an incremental implementation, not a production acceptance certificate.
 

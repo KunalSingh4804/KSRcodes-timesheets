@@ -1,4 +1,4 @@
-# MultiverseTech Solutions · Timesheet workspace
+# KSRcodes pvt.ltd · Timesheet workspace
 
 A working incremental React/Express/Prisma application for monthly timesheets, scoped multi-stage review and approved-record amendments. This repository contains persistent backend behavior and API-connected screens, not a static dashboard.
 
@@ -80,7 +80,7 @@ After applying migrations to an empty native PostgreSQL database, create a priva
 
 ```json
 {
-  "company": "MultiverseTech Solutions",
+  "company": "KSRcodes pvt.ltd",
   "timezone": "REPLACE_WITH_APPROVED_IANA_TIMEZONE",
   "tenantId": "REPLACE_WITH_COMPANY_TENANT_UUID",
   "adminObjectId": "REPLACE_WITH_ADMIN_ENTRA_OBJECT_UUID",

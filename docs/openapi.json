@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "MultiverseTech Solutions Timesheet API",
+    "title": "KSRcodes pvt.ltd Timesheet API",
     "version": "0.1.0",
     "description": "Incremental implementation contract. Authentication endpoints live at /auth; see docs/entra-sso.md. Error responses never include stack traces. Placeholder Entity responses are extensible domain objects; Prisma schema and API regression tests define their additional fields."
   },

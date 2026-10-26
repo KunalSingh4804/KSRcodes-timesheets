@@ -89,7 +89,7 @@ authRouter.get("/config", (_req, res) =>
   res.json({
     data: {
       mode: devAuth ? "development" : "entra",
-      company: "MultiverseTech Solutions",
+      company: "KSRcodes pvt.ltd",
       configured:
         devAuth ||
         !!(

@@ -10,6 +10,7 @@
     "dev": "node --import tsx scripts/dev.ts",
     "dev:api": "node --import tsx server/src/index.ts",
     "dev:web": "vite --config web/vite.config.ts --host 0.0.0.0",
+    "build:web": "vite build --config web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config web/vite.config.ts && tsc -p server/tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint server web/src scripts",

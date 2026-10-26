@@ -50,6 +50,14 @@ All seeded emails use `.example`. Sample weekdays, target minutes, workflows and
 3. Run `npm run db:generate`, `npm run db:migrate`, `npm run db:seed`, then `npm run dev`.
 4. In a separate disposable database, run `TEST_NATIVE_POSTGRES=1 npm run test:api`. This test seeds fictional identities and changes account status; never target production.
 
+## GitHub Pages static preview
+
+The Pages workflow publishes a static frontend preview at
+`https://KunalSingh4804.github.io/KSRcodes-timesheets/`. GitHub Pages does not
+run this application's Express API or PostgreSQL database, so sign-in,
+timesheets, approvals, and reports are unavailable on that preview. Use the
+local development setup above for the complete fictional demo workflow.
+
 Docker is optional for the embedded quick start. The supplied Dockerfile builds separate runtime and migration targets. Compose supplies a local PostgreSQL service, while Vite/Express run on the host for development.
 
 ## Try the complete business flow

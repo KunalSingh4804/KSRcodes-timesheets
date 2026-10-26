@@ -270,7 +270,57 @@ function SignIn() {
     </div>
   );
 }
+function PagesLanding() {
+  return (
+    <div className="sign-in">
+      <div className="sign-in-story">
+        <Brand />
+        <div>
+          <span className="eyebrow">THE KSRcodes WORKSPACE</span>
+          <h1>
+            Great work.
+            <br />
+            Every hour
+            <br />
+            <em>accounted for.</em>
+          </h1>
+          <p>
+            A simpler way to track your contribution,
+            <br />
+            keep projects moving, and close the month.
+          </p>
+        </div>
+        <small>KSRcodes pvt.ltd · Employee workspace</small>
+      </div>
+      <div className="sign-in-form">
+        <span className="small-logo">
+          <InfinityIcon />
+        </span>
+        <h2>KSRcodes Timesheets</h2>
+        <p>Company timesheets, project effort, and approvals.</p>
+        <div className="dev-note">
+          <ShieldCheck size={19} />
+          <div>
+            <strong>Static preview on GitHub Pages</strong>
+            <span>
+              This site only hosts the frontend. Sign-in, timesheets, approvals,
+              and reports need the application API and database, which are not
+              hosted here.
+            </span>
+          </div>
+        </div>
+        <small>For demonstration only · No company data is connected</small>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  if (import.meta.env.VITE_STATIC_SITE === "true") return <PagesLanding />;
+  return <ConnectedApp />;
+}
+
+function ConnectedApp() {
   const me = useData("/me");
   if (me.isPending)
     return (

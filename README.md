@@ -52,11 +52,13 @@ All seeded emails use `.example`. Sample weekdays, target minutes, workflows and
 
 ## GitHub Pages static preview
 
-The Pages workflow publishes a static frontend preview at
-`https://KunalSingh4804.github.io/KSRcodes-timesheets/`. GitHub Pages does not
-run this application's Express API or PostgreSQL database, so sign-in,
-timesheets, approvals, and reports are unavailable on that preview. Use the
-local development setup above for the complete fictional demo workflow.
+The Pages workflow publishes a static frontend prototype at
+`https://KunalSingh4804.github.io/KSRcodes-timesheets/`. Its interactive demo
+includes fictional timesheet entries and sample reports, with changes held in
+browser memory and reset on refresh. GitHub Pages does not run this
+application's Express API or PostgreSQL database: authentication, persistence,
+approvals, and live reports are not connected. Use the local development setup
+above for the complete fictional demo workflow.
 
 Docker is optional for the embedded quick start. The supplied Dockerfile builds separate runtime and migration targets. Compose supplies a local PostgreSQL service, while Vite/Express run on the host for development.
 

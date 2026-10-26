@@ -270,6 +270,584 @@ function SignIn() {
     </div>
   );
 }
+type PrototypeEntry = {
+  id: number;
+  date: string;
+  project: string;
+  description: string;
+  category: string;
+  minutes: number;
+};
+
+const prototypeProjects = [
+  { name: "Customer portal", color: "#27826b" },
+  { name: "Mobile experience", color: "#6486bd" },
+  { name: "Team operations", color: "#a17aac" },
+];
+
+function prototypeDate(offset: number) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+function PrototypeWorkspace() {
+  const [page, setPage] = useState<"overview" | "timesheet" | "reports">(
+    "overview",
+  );
+  const [entries, setEntries] = useState<PrototypeEntry[]>(() => [
+    {
+      id: 1,
+      date: prototypeDate(-1),
+      project: "Customer portal",
+      description: "Refined the account settings experience",
+      category: "Development",
+      minutes: 210,
+    },
+    {
+      id: 2,
+      date: prototypeDate(-1),
+      project: "Team operations",
+      description: "Sprint planning and team check-in",
+      category: "Meetings",
+      minutes: 60,
+    },
+    {
+      id: 3,
+      date: prototypeDate(-2),
+      project: "Mobile experience",
+      description: "Reviewed responsive navigation layouts",
+      category: "Design",
+      minutes: 240,
+    },
+    {
+      id: 4,
+      date: prototypeDate(-3),
+      project: "Customer portal",
+      description: "Implemented profile form validation",
+      category: "Development",
+      minutes: 300,
+    },
+    {
+      id: 5,
+      date: prototypeDate(-4),
+      project: "Team operations",
+      description: "Prepared release notes and handoff",
+      category: "Planning",
+      minutes: 150,
+    },
+  ]);
+  const [showEntryForm, setShowEntryForm] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(prototypeDate(-1));
+  const [newProject, setNewProject] = useState(prototypeProjects[0].name);
+  const [newDescription, setNewDescription] = useState("");
+  const [newMinutes, setNewMinutes] = useState("60");
+  const today = new Date();
+  const monthName = today.toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+  const totalMinutes = entries.reduce((sum, entry) => sum + entry.minutes, 0);
+  const weekMinutes = entries
+    .filter((entry) => entry.date >= prototypeDate(-6))
+    .reduce((sum, entry) => sum + entry.minutes, 0);
+  const projectMinutes = prototypeProjects.map((project) => ({
+    ...project,
+    total: entries
+      .filter((entry) => entry.project === project.name)
+      .reduce((sum, entry) => sum + entry.minutes, 0),
+  }));
+
+  function addEntry(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const duration = Number(newMinutes);
+    if (!newDescription.trim() || !Number.isInteger(duration) || duration < 1)
+      return;
+    setEntries((current) => [
+      {
+        id: Date.now(),
+        date: selectedDate,
+        project: newProject,
+        description: newDescription.trim(),
+        category: "Development",
+        minutes: duration,
+      },
+      ...current,
+    ]);
+    setNewDescription("");
+    setNewMinutes("60");
+    setShowEntryForm(false);
+  }
+
+  function exportPrototypeReport() {
+    const rows = [
+      ["Date", "Project", "Description", "Category", "Hours"],
+      ...entries.map((entry) => [
+        entry.date,
+        entry.project,
+        entry.description,
+        entry.category,
+        (entry.minutes / 60).toFixed(1),
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    link.download = `ksrcodes-demo-timesheet-${today.toISOString().slice(0, 7)}.csv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }
+
+  const nav = [
+    { id: "overview" as const, label: "Overview", icon: LayoutDashboard },
+    { id: "timesheet" as const, label: "My timesheet", icon: CalendarDays },
+    { id: "reports" as const, label: "Reports", icon: BarChart3 },
+  ];
+  const pageTitle = nav.find((item) => item.id === page)?.label ?? "Overview";
+
+  return (
+    <div className="app-shell prototype-shell">
+      <aside className="sidebar">
+        <Brand />
+        <div className="workspace-select">
+          <span className="workspace-avatar">K</span>
+          <div>
+            <strong>Company workspace</strong>
+            <small>KSRcodes pvt.ltd</small>
+          </div>
+        </div>
+        <span className="nav-label">YOUR WORKSPACE</span>
+        <nav>
+          {nav.map((item) => (
+            <button
+              className={page === item.id ? "prototype-nav active" : "prototype-nav"}
+              key={item.id}
+              onClick={() => setPage(item.id)}
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-tip">
+            <span className="tip-icon">
+              <Clock3 size={19} />
+            </span>
+            <strong>Try the interactive demo</strong>
+            <p>Add a sample work entry or download a report.</p>
+          </div>
+          <div className="profile prototype-profile">
+            <span className="avatar">AM</span>
+            <span>
+              <strong>Aarav Mehta</strong>
+              <small>Demo employee</small>
+            </span>
+          </div>
+        </div>
+      </aside>
+      <div className="workspace-main">
+        <header className="topbar">
+          <div className="breadcrumb">
+            Workspace <ChevronRight size={14} />
+            <strong>{pageTitle}</strong>
+          </div>
+          <div className="topbar-right">
+            <span className="environment">
+              <i />
+              Interactive demo
+            </span>
+            <span className="avatar small">AM</span>
+          </div>
+        </header>
+        <main>
+          <div className="prototype-notice">
+            <ShieldCheck size={17} />
+            Demo prototype · fictional data only · changes reset when you refresh
+          </div>
+          <div className="page-tools">
+            <span className="eyebrow">KSRcodes pvt.ltd · SAMPLE WORKSPACE</span>
+            <span className="period-picker">
+              <CalendarDays size={16} />
+              {monthName}
+            </span>
+          </div>
+          {page === "overview" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>
+                    Good to see you, Aarav<span className="wave">.</span>
+                  </h1>
+                  <p>Here’s your sample timesheet at a glance.</p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setPage("timesheet");
+                    setShowEntryForm(true);
+                  }}
+                >
+                  <Plus size={17} /> Add work entry
+                </Button>
+              </div>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div>
+                    <span>Hours this week</span>
+                    <span className="stat-icon teal">
+                      <Clock3 size={17} />
+                    </span>
+                  </div>
+                  <strong>{(weekMinutes / 60).toFixed(1)}h</strong>
+                  <small>Sample entries this week</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Entries this month</span>
+                    <span className="stat-icon blue">
+                      <CalendarDays size={17} />
+                    </span>
+                  </div>
+                  <strong>{entries.length}</strong>
+                  <small>Across {projectMinutes.filter((p) => p.total).length} projects</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Total recorded</span>
+                    <span className="stat-icon purple">
+                      <BarChart3 size={17} />
+                    </span>
+                  </div>
+                  <strong>{(totalMinutes / 60).toFixed(1)}h</strong>
+                  <small>For {monthName}</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Approval status</span>
+                    <span className="stat-icon orange">
+                      <ShieldCheck size={17} />
+                    </span>
+                  </div>
+                  <strong className="prototype-status">Draft</strong>
+                  <small>Sample workflow status</small>
+                </div>
+              </div>
+              <div className="dashboard-columns">
+                <section className="card">
+                  <div className="card-heading">
+                    <div>
+                      <h2>Time by project</h2>
+                      <p>Sample hours across your projects</p>
+                    </div>
+                    <FolderKanban size={18} />
+                  </div>
+                  <div className="project-breakdown prototype-breakdown">
+                    {projectMinutes.map((project) => (
+                      <div key={project.name}>
+                        <div className="project-bar-label">
+                          <span>
+                            <i style={{ background: project.color }} />
+                            {project.name}
+                          </span>
+                          <strong>{minutes(project.total)}</strong>
+                        </div>
+                        <div className="bar-track">
+                          <div
+                            style={{
+                              background: project.color,
+                              width: `${totalMinutes ? (project.total / totalMinutes) * 100 : 0}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+                <section className="card">
+                  <div className="card-heading">
+                    <div>
+                      <h2>Month at a glance</h2>
+                      <p>A sample submission workflow</p>
+                    </div>
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <div className="prototype-workflow">
+                    <span className="status pending">
+                      <i /> Draft
+                    </span>
+                    <p>Your sample timesheet is ready to review.</p>
+                    <button
+                      className="text-link"
+                      onClick={() => setPage("timesheet")}
+                    >
+                      Open my timesheet <ArrowRight size={15} />
+                    </button>
+                  </div>
+                </section>
+              </div>
+              <PrototypeEntries
+                entries={entries.slice(0, 4)}
+                onOpen={() => setPage("timesheet")}
+              />
+            </>
+          )}
+          {page === "timesheet" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>My timesheet</h1>
+                  <p>Explore the sample entries or add one for this demo.</p>
+                </div>
+                <Button onClick={() => setShowEntryForm((show) => !show)}>
+                  <Plus size={17} /> {showEntryForm ? "Cancel" : "Add work entry"}
+                </Button>
+              </div>
+              <div className="timesheet-summary">
+                <span>
+                  <Clock3 size={18} />
+                  <strong>{minutes(totalMinutes)}</strong> recorded
+                </span>
+                <span>{entries.length} entries</span>
+                <span>{monthName}</span>
+                <span className="push-right">Demo data · not submitted</span>
+              </div>
+              {showEntryForm && (
+                <form className="card prototype-entry-form" onSubmit={addEntry}>
+                  <div className="card-heading">
+                    <div>
+                      <h2>Add a sample work entry</h2>
+                      <p>This stays in your browser and is not saved to a server.</p>
+                    </div>
+                  </div>
+                  <div className="prototype-form-grid">
+                    <label>
+                      Work date
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(event) => setSelectedDate(event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Project
+                      <select
+                        value={newProject}
+                        onChange={(event) => setNewProject(event.target.value)}
+                      >
+                        {prototypeProjects.map((project) => (
+                          <option key={project.name}>{project.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Duration (minutes)
+                      <input
+                        type="number"
+                        min="1"
+                        max="1440"
+                        value={newMinutes}
+                        onChange={(event) => setNewMinutes(event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="prototype-description-field">
+                      What did you work on?
+                      <input
+                        value={newDescription}
+                        onChange={(event) => setNewDescription(event.target.value)}
+                        placeholder="Describe the sample work"
+                        minLength={3}
+                        required
+                      />
+                    </label>
+                  </div>
+                  <div className="prototype-form-actions">
+                    <Button type="submit">
+                      Save demo entry <Check size={16} />
+                    </Button>
+                  </div>
+                </form>
+              )}
+              <PrototypeEntries entries={entries} />
+            </>
+          )}
+          {page === "reports" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>Reports</h1>
+                  <p>Explore sample hours and export a fictional CSV.</p>
+                </div>
+                <Button onClick={exportPrototypeReport}>
+                  <Download size={17} /> Download sample CSV
+                </Button>
+              </div>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div>
+                    <span>Total hours</span>
+                    <span className="stat-icon teal">
+                      <Clock3 size={17} />
+                    </span>
+                  </div>
+                  <strong>{(totalMinutes / 60).toFixed(1)}h</strong>
+                  <small>Sample period</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Work entries</span>
+                    <span className="stat-icon blue">
+                      <Layers size={17} />
+                    </span>
+                  </div>
+                  <strong>{entries.length}</strong>
+                  <small>Fictional records</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Projects</span>
+                    <span className="stat-icon purple">
+                      <FolderKanban size={17} />
+                    </span>
+                  </div>
+                  <strong>{projectMinutes.filter((project) => project.total > 0).length}</strong>
+                  <small>With recorded time</small>
+                </div>
+                <div className="stat-card">
+                  <div>
+                    <span>Billable share</span>
+                    <span className="stat-icon orange">
+                      <BarChart3 size={17} />
+                    </span>
+                  </div>
+                  <strong>82%</strong>
+                  <small>Illustrative estimate</small>
+                </div>
+              </div>
+              <section className="card prototype-report-card">
+                <div className="card-heading">
+                  <div>
+                    <h2>Hours by project</h2>
+                    <p>Sample distribution for {monthName}</p>
+                  </div>
+                </div>
+                <div className="prototype-report-bars">
+                  {projectMinutes.map((project) => (
+                    <div className="prototype-report-row" key={project.name}>
+                      <span>{project.name}</span>
+                      <div className="bar-track">
+                        <div
+                          style={{
+                            background: project.color,
+                            width: `${totalMinutes ? (project.total / totalMinutes) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                      <strong>{(project.total / 60).toFixed(1)}h</strong>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <PrototypeEntries entries={entries} />
+            </>
+          )}
+          <div className="sample-footnote">
+            <ShieldCheck size={14} />
+            Prototype only · Data is fictional and held temporarily in this browser.
+          </div>
+          <footer>
+            <span>© {new Date().getFullYear()} KSRcodes pvt.ltd</span>
+            <span>Interactive timesheet prototype</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function PrototypeEntries({
+  entries,
+  onOpen,
+}: {
+  entries: PrototypeEntry[];
+  onOpen?: () => void;
+}) {
+  return (
+    <section className="card prototype-entries-card">
+      <div className="card-heading">
+        <div>
+          <h2>Sample work entries</h2>
+          <p>Fictional work records for the prototype</p>
+        </div>
+        {onOpen && (
+          <button className="text-link" onClick={onOpen}>
+            View timesheet <ArrowRight size={15} />
+          </button>
+        )}
+      </div>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>WORK DATE</th>
+              <th>PROJECT & DESCRIPTION</th>
+              <th>CATEGORY</th>
+              <th>DURATION</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id}>
+                <td>
+                  {new Date(`${entry.date}T00:00:00`).toLocaleDateString(
+                    "en-IN",
+                    { day: "numeric", month: "short" },
+                  )}
+                </td>
+                <td>
+                  <strong className="project-cell">
+                    <i
+                      style={{
+                        background:
+                          prototypeProjects.find(
+                            (project) => project.name === entry.project,
+                          )?.color ?? "#27826b",
+                      }}
+                    />
+                    {entry.project}
+                  </strong>
+                  <span className="description">{entry.description}</span>
+                </td>
+                <td>
+                  <span className="category">{entry.category}</span>
+                </td>
+                <td>
+                  <strong>{minutes(entry.minutes)}</strong>
+                </td>
+                <td>
+                  <span className="status pending">
+                    <i /> Draft
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {!entries.length && (
+              <tr>
+                <td colSpan={5}>No demo entries yet. Add a sample entry to begin.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function PagesLanding() {
   return (
     <div className="sign-in">
@@ -297,26 +875,33 @@ function PagesLanding() {
           <InfinityIcon />
         </span>
         <h2>KSRcodes Timesheets</h2>
-        <p>Company timesheets, project effort, and approvals.</p>
+        <p>Explore a fictional, interactive timesheet prototype.</p>
         <div className="dev-note">
           <ShieldCheck size={19} />
           <div>
-            <strong>Static preview on GitHub Pages</strong>
+            <strong>Demo mode · no database or API</strong>
             <span>
-              This site only hosts the frontend. Sign-in, timesheets, approvals,
-              and reports need the application API and database, which are not
-              hosted here.
+              Sample entries and reports are simulated in your browser. Changes
+              reset when you refresh the page.
             </span>
           </div>
         </div>
-        <small>For demonstration only · No company data is connected</small>
+        <Button onClick={() => window.location.assign(`${import.meta.env.BASE_URL}demo`)}>
+          Explore interactive demo <ArrowRight size={17} />
+        </Button>
+        <small>For demonstration only · Fictional data, no company data connected</small>
       </div>
     </div>
   );
 }
 
 export default function App() {
-  if (import.meta.env.VITE_STATIC_SITE === "true") return <PagesLanding />;
+  if (import.meta.env.VITE_STATIC_SITE === "true")
+    return location.pathname.endsWith("/demo") ? (
+      <PrototypeWorkspace />
+    ) : (
+      <PagesLanding />
+    );
   return <ConnectedApp />;
 }
 

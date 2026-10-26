@@ -1863,6 +1863,130 @@ input[type="checkbox"] {
     margin-left: 0;
     width: 100%;
   }
+  .prototype-nav {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 11px 14px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #6c7b73;
+    text-align: left;
+    font-size: 12px;
+  }
+  .prototype-nav:hover {
+    background: #f0f6f2;
+  }
+  .prototype-nav.active {
+    background: #e9f4ef;
+    color: #18795c;
+    font-weight: 600;
+  }
+  .prototype-profile {
+    cursor: default;
+  }
+  .prototype-notice {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 14px;
+    margin-bottom: 20px;
+    border: 1px solid #dcebe0;
+    border-radius: 8px;
+    background: #eef7f0;
+    color: #477259;
+    font-size: 12px;
+  }
+  .prototype-notice svg {
+    flex-shrink: 0;
+  }
+  .prototype-status {
+    color: #a17235 !important;
+    font-size: 20px !important;
+  }
+  .prototype-breakdown {
+    display: grid;
+    gap: 20px;
+    padding: 0 23px 24px;
+  }
+  .prototype-workflow {
+    padding: 0 23px 24px;
+  }
+  .prototype-workflow p {
+    margin: 14px 0;
+    color: #6a7a6c;
+    font-size: 12px;
+  }
+  .prototype-workflow button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .prototype-entries-card {
+    margin-top: 22px;
+  }
+  .prototype-entry-form {
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+  }
+  .prototype-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    padding: 0 23px;
+  }
+  .prototype-form-grid label {
+    display: grid;
+    gap: 7px;
+    color: #62776a;
+    font-size: 12px;
+  }
+  .prototype-form-grid input,
+  .prototype-form-grid select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #dce5de;
+    border-radius: 6px;
+    padding: 9px 11px;
+    background: #fff;
+    color: #3f5548;
+    font-size: 12px;
+  }
+  .prototype-description-field {
+    grid-column: span 2;
+  }
+  .prototype-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 18px 23px 0;
+  }
+  .prototype-report-card {
+    margin-bottom: 22px;
+  }
+  .prototype-report-bars {
+    display: grid;
+    gap: 20px;
+    padding: 0 23px 25px;
+  }
+  .prototype-report-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.75fr) 2fr 55px;
+    align-items: center;
+    gap: 15px;
+    color: #5e7164;
+    font-size: 12px;
+  }
+  .prototype-report-row .bar-track {
+    margin: 0;
+  }
+  .prototype-report-row strong {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+  }
   .submission-bar {
     align-items: flex-start;
     flex-direction: column;
@@ -1893,6 +2017,16 @@ input[type="checkbox"] {
   }
 }
 @media (max-width: 640px) {
+  .prototype-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .prototype-description-field {
+    grid-column: span 2;
+  }
+  .prototype-report-row {
+    grid-template-columns: minmax(100px, 0.8fr) 1fr 45px;
+    gap: 9px;
+  }
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.2s;

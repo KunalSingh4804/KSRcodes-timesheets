@@ -1,0 +1,435 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  IN_APPROVAL
+  APPROVED
+  RETURNED
+  REJECTED
+}
+
+enum TaskStatus {
+  PENDING
+  APPROVED
+  RETURNED
+  REJECTED
+  CANCELLED
+}
+
+enum AmendmentStatus {
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  CONFLICTED
+}
+
+model Organization {
+  id          String                       @id @default(uuid()) @db.Uuid
+  name        String
+  timezone    String
+  users       User[]
+  departments Department[]
+  teams       Team[]
+  projects    Project[]
+  periods     ReportingPeriod[]
+  workflows   ApprovalWorkflowDefinition[]
+  policies    WorkPolicy[]
+  calendars   CompanyCalendar[]
+}
+
+model Department {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  teams          Team[]
+
+  @@unique([organizationId, name])
+}
+
+model User {
+  id                 String              @id @default(uuid()) @db.Uuid
+  organizationId     String              @db.Uuid
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  entraTenantId      String?
+  entraObjectId      String?
+  email              String
+  name               String
+  active             Boolean             @default(true)
+  managerId          String?             @db.Uuid
+  manager            User?               @relation("Manager", fields: [managerId], references: [id], onDelete: Restrict)
+  reports            User[]              @relation("Manager")
+  roles              UserRole[]
+  memberships        TeamMembership[]
+  assignments        ProjectAssignment[]
+  managedProjects    Project[]           @relation("ProjectManager")
+  timesheets         Timesheet[]
+  tasks              ApprovalTask[]
+  decisions          ApprovalDecision[]
+  amendments         AmendmentRequest[]
+  auditEvents        AuditEvent[]
+  notifications      Notification[]
+  exports            ExportJob[]
+  sessions           Session[]
+  idempotencyRecords IdempotencyRecord[]
+
+  @@unique([entraTenantId, entraObjectId])
+  @@unique([organizationId, email])
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @unique
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id    String           @id @default(uuid()) @db.Uuid
+  code  String           @unique
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  roleId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  scope     String
+  teamId    String?  @db.Uuid
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  projectId String?  @db.Uuid
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
+
+  @@index([userId, scope])
+}
+
+model Team {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  departmentId   String           @db.Uuid
+  department     Department       @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  name           String
+  memberships    TeamMembership[]
+  roleScopes     UserRole[]
+
+  @@unique([organizationId, name])
+}
+
+model TeamMembership {
+  id       String    @id @default(uuid()) @db.Uuid
+  teamId   String    @db.Uuid
+  userId   String    @db.Uuid
+  team     Team      @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  startsOn DateTime  @db.Date
+  endsOn   DateTime? @db.Date
+
+  @@index([teamId, userId])
+}
+
+model Project {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  code           String
+  color          String              @default("#12b89a")
+  active         Boolean             @default(true)
+  managerId      String?             @db.Uuid
+  manager        User?               @relation("ProjectManager", fields: [managerId], references: [id], onDelete: Restrict)
+  assignments    ProjectAssignment[]
+  entries        WorkEntry[]
+  roleScopes     UserRole[]
+
+  @@unique([organizationId, code])
+}
+
+model ProjectAssignment {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  projectId String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  startsOn  DateTime  @db.Date
+  endsOn    DateTime? @db.Date
+
+  @@index([userId, projectId, startsOn])
+}
+
+model CompanyCalendar {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  holidays       Json
+  policies       WorkPolicy[]
+}
+
+model WorkPolicy {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  calendarId     String            @db.Uuid
+  calendar       CompanyCalendar   @relation(fields: [calendarId], references: [id], onDelete: Restrict)
+  name           String
+  version        Int
+  config         Json
+  periods        ReportingPeriod[]
+
+  @@unique([organizationId, name, version])
+}
+
+model ReportingPeriod {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  startsOn       DateTime     @db.Date
+  endsOn         DateTime     @db.Date
+  deadline       DateTime?
+  policyId       String       @db.Uuid
+  policy         WorkPolicy   @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  timesheets     Timesheet[]
+  exports        ExportJob[]
+
+  @@unique([organizationId, startsOn])
+}
+
+model Timesheet {
+  id             String             @id @default(uuid()) @db.Uuid
+  userId         String             @db.Uuid
+  user           User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  periodId       String             @db.Uuid
+  period         ReportingPeriod    @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  status         TimesheetStatus    @default(DRAFT)
+  revision       Int                @default(0)
+  currentVersion Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  entries        WorkEntry[]
+  versions       TimesheetVersion[]
+  approvals      ApprovalInstance[]
+  amendments     AmendmentRequest[]
+
+  @@unique([userId, periodId])
+  @@index([status, periodId])
+}
+
+model WorkEntry {
+  id          String    @id @default(uuid()) @db.Uuid
+  timesheetId String    @db.Uuid
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Restrict)
+  projectId   String    @db.Uuid
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  workDate    DateTime  @db.Date
+  taskId      String?
+  description String
+  minutes     Int
+  category    String
+  billable    Boolean   @default(true)
+  remarks     String?
+
+  @@index([projectId, workDate])
+  @@index([timesheetId, workDate])
+}
+
+model TimesheetVersion {
+  id             String             @id @default(uuid()) @db.Uuid
+  timesheetId    String             @db.Uuid
+  timesheet      Timesheet          @relation(fields: [timesheetId], references: [id], onDelete: Restrict)
+  number         Int
+  kind           String
+  entries        Json
+  policySnapshot Json
+  createdAt      DateTime           @default(now())
+  approvals      ApprovalInstance[]
+  amendments     AmendmentRequest[]
+
+  @@unique([timesheetId, number])
+}
+
+model ApprovalWorkflowDefinition {
+  id             String                    @id @default(uuid()) @db.Uuid
+  organizationId String                    @db.Uuid
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  version        Int
+  active         Boolean                   @default(false)
+  stages         ApprovalStageDefinition[]
+  instances      ApprovalInstance[]
+
+  @@unique([organizationId, name, version])
+}
+
+model ApprovalStageDefinition {
+  id         String                     @id @default(uuid()) @db.Uuid
+  workflowId String                     @db.Uuid
+  workflow   ApprovalWorkflowDefinition @relation(fields: [workflowId], references: [id], onDelete: Restrict)
+  position   Int
+  name       String
+  resolver   String
+  config     Json
+  tasks      ApprovalTask[]
+
+  @@unique([workflowId, position])
+}
+
+model ApprovalInstance {
+  id            String                     @id @default(uuid()) @db.Uuid
+  timesheetId   String                     @db.Uuid
+  timesheet     Timesheet                  @relation(fields: [timesheetId], references: [id], onDelete: Restrict)
+  versionId     String                     @db.Uuid
+  version       TimesheetVersion           @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  workflowId    String                     @db.Uuid
+  workflow      ApprovalWorkflowDefinition @relation(fields: [workflowId], references: [id], onDelete: Restrict)
+  amendmentId   String?                    @unique @db.Uuid
+  amendment     AmendmentRequest?          @relation(fields: [amendmentId], references: [id], onDelete: Restrict)
+  stagePosition Int                        @default(1)
+  status        String                     @default("ACTIVE")
+  createdAt     DateTime                   @default(now())
+  tasks         ApprovalTask[]
+}
+
+model ApprovalTask {
+  id         String                  @id @default(uuid()) @db.Uuid
+  instanceId String                  @db.Uuid
+  instance   ApprovalInstance        @relation(fields: [instanceId], references: [id], onDelete: Restrict)
+  stageId    String                  @db.Uuid
+  stage      ApprovalStageDefinition @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  approverId String                  @db.Uuid
+  approver   User                    @relation(fields: [approverId], references: [id], onDelete: Restrict)
+  scopeKey   String                  @default("ALL")
+  status     TaskStatus              @default(PENDING)
+  createdAt  DateTime                @default(now())
+  decision   ApprovalDecision?
+
+  @@unique([instanceId, stageId, approverId, scopeKey])
+  @@index([approverId, status])
+}
+
+model ApprovalDecision {
+  id        String       @id @default(uuid()) @db.Uuid
+  taskId    String       @unique @db.Uuid
+  task      ApprovalTask @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  actorId   String       @db.Uuid
+  actor     User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action    String
+  reason    String?
+  createdAt DateTime     @default(now())
+}
+
+model AmendmentRequest {
+  id              String            @id @default(uuid()) @db.Uuid
+  timesheetId     String            @db.Uuid
+  timesheet       Timesheet         @relation(fields: [timesheetId], references: [id], onDelete: Restrict)
+  baseVersionId   String            @db.Uuid
+  baseVersion     TimesheetVersion  @relation(fields: [baseVersionId], references: [id], onDelete: Restrict)
+  requesterId     String            @db.Uuid
+  requester       User              @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  baseRevision    Int
+  reason          String
+  proposedEntries Json
+  status          AmendmentStatus   @default(IN_REVIEW)
+  createdAt       DateTime          @default(now())
+  approval        ApprovalInstance?
+
+  @@index([timesheetId, status])
+}
+
+model AuditEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  actorId       String   @db.Uuid
+  actor         User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action        String
+  targetType    String
+  targetId      String
+  correlationId String
+  summary       Json
+  createdAt     DateTime @default(now())
+
+  @@index([targetId, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  message   String
+  targetId  String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model ExportJob {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @db.Uuid
+  user      User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  periodId  String          @db.Uuid
+  period    ReportingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  status    String          @default("PENDING")
+  createdAt DateTime        @default(now())
+  expiresAt DateTime
+
+  @@index([userId, status])
+}
+
+model Session {
+  tokenHash String   @id
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  csrfHash  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model IdempotencyRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  key         String
+  fingerprint String
+  response    Json
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, key])
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  kind        String
+  payload     Json
+  deliveredAt DateTime?
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+
+  @@index([deliveredAt, availableAt])
+}
+
+model AuthRequest {
+  stateHash String   @id
+  nonce     String
+  verifier  String
+  expiresAt DateTime
+}

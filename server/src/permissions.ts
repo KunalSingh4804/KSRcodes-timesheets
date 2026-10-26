@@ -1,0 +1,30 @@
+export const rolePermissions: Record<string, string[]> = {
+  Employee: [
+    "timesheet.read",
+    "timesheet.write",
+    "audit.read",
+    "report.read",
+    "export.create",
+  ],
+  Manager: [
+    "timesheet.read",
+    "approval.decide",
+    "organization.read",
+    "audit.read",
+    "report.read",
+    "export.create",
+  ],
+  ProjectManager: ["approval.decide", "report.read", "export.create"],
+  HR: [
+    "timesheet.read",
+    "approval.decide",
+    "organization.read",
+    "organization.write",
+    "configuration.write",
+    "audit.read",
+    "report.read",
+    "export.create",
+  ],
+  SystemAdmin: ["configuration.write", "access.write"],
+  Auditor: ["timesheet.read", "audit.read", "report.read", "export.create"],
+};

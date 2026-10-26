@@ -1,0 +1,49 @@
+name: Verify application
+on:
+  push:
+  pull_request:
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: multiverse
+          POSTGRES_PASSWORD: ci-disposable-only
+          POSTGRES_DB: multiverse
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U multiverse -d multiverse"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://multiverse:ci-disposable-only@localhost:5432/multiverse
+      AUTH_MODE: development
+      APP_ORIGIN: http://localhost:5173
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx prisma validate
+      - run: npm run db:migrate
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:api
+        env:
+          TEST_NATIVE_POSTGRES: '1'
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run db:seed
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-test-report
+          path: playwright-report/

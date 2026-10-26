@@ -358,6 +358,18 @@ function PrototypeWorkspace() {
       .filter((entry) => entry.project === project.name)
       .reduce((sum, entry) => sum + entry.minutes, 0),
   }));
+  const reportCsv = [
+    ["Date", "Project", "Description", "Category", "Hours"],
+    ...entries.map((entry) => [
+      entry.date,
+      entry.project,
+      entry.description,
+      entry.category,
+      (entry.minutes / 60).toFixed(1),
+    ]),
+  ]
+    .map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","))
+    .join("\n");
 
   function addEntry(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -378,27 +390,6 @@ function PrototypeWorkspace() {
     setNewDescription("");
     setNewMinutes("60");
     setShowEntryForm(false);
-  }
-
-  function exportPrototypeReport() {
-    const rows = [
-      ["Date", "Project", "Description", "Category", "Hours"],
-      ...entries.map((entry) => [
-        entry.date,
-        entry.project,
-        entry.description,
-        entry.category,
-        (entry.minutes / 60).toFixed(1),
-      ]),
-    ];
-    const csv = rows
-      .map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","))
-      .join("\n");
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    link.download = `ksrcodes-demo-timesheet-${today.toISOString().slice(0, 7)}.csv`;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
 
   const nav = [
@@ -682,9 +673,13 @@ function PrototypeWorkspace() {
                   <h1>Reports</h1>
                   <p>Explore sample hours and export a fictional CSV.</p>
                 </div>
-                <Button onClick={exportPrototypeReport}>
+                <a
+                  className="button"
+                  href={`data:text/csv;charset=utf-8,${encodeURIComponent(reportCsv)}`}
+                  download={`ksrcodes-demo-timesheet-${today.toISOString().slice(0, 7)}.csv`}
+                >
                   <Download size={17} /> Download sample CSV
-                </Button>
+                </a>
               </div>
               <div className="stats-grid">
                 <div className="stat-card">
@@ -848,7 +843,7 @@ function PrototypeEntries({
   );
 }
 
-function PagesLanding() {
+function PagesLanding({ onExplore }: { onExplore: () => void }) {
   return (
     <div className="sign-in">
       <div className="sign-in-story">
@@ -886,7 +881,7 @@ function PagesLanding() {
             </span>
           </div>
         </div>
-        <Button onClick={() => window.location.assign(`${import.meta.env.BASE_URL}demo`)}>
+        <Button onClick={onExplore}>
           Explore interactive demo <ArrowRight size={17} />
         </Button>
         <small>For demonstration only · Fictional data, no company data connected</small>
@@ -895,13 +890,18 @@ function PagesLanding() {
   );
 }
 
+function StaticSite() {
+  const [showDemo, setShowDemo] = useState(false);
+  return showDemo ? (
+    <PrototypeWorkspace />
+  ) : (
+    <PagesLanding onExplore={() => setShowDemo(true)} />
+  );
+}
+
 export default function App() {
   if (import.meta.env.VITE_STATIC_SITE === "true")
-    return location.pathname.endsWith("/demo") ? (
-      <PrototypeWorkspace />
-    ) : (
-      <PagesLanding />
-    );
+    return <StaticSite />;
   return <ConnectedApp />;
 }
 
